@@ -1,0 +1,15 @@
+nethack				on
+autodetach			on
+crlf				off
+deflogin			off
+hardcopy_append		on
+startup_message		off
+vbell				off
+defscrollback		1000
+silencewait			15
+shell				zsh
+activity			"activity in %n (%t) [%w:%s]~"
+bell				"%C -> %n%f %t activity"
+vbell_msg			" *Fuck this bell ;-)*"
+
+caption always "%{wb}%?%-Lw%?%{bw}[%n*%f %t]%?(%u)%?%{wb}%?%+Lw%? %=%{wb}@%H%{wb} %D %d.%m.%Y %c:%s (load: %l)"

@@ -1,0 +1,162 @@
+﻿""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vundle Setup
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+set nocompatible
+filetype off
+
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+    Bundle 'gmarik/vundle'
+
+    Plugin 'bling/vim-airline'
+    Plugin 'tpope/vim-fugitive'
+    Plugin 'airblade/vim-gitgutter'
+    Plugin 'nathanaelkane/vim-indent-guides'
+
+call vundle#end()
+filetype plugin indent on
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+" UI and Text Options
+""""""""""""""""""""""""""""""""""""""""""""""""""""
+set enc=utf-8
+set fenc=utf-8
+set termencoding=utf-8
+set nocompatible
+set autoindent
+set smartindent
+
+set tabstop=4
+set shiftwidth=4
+set expandtab
+
+set textwidth=200
+set t_Co=256
+syntax on
+set number
+set showmatch
+set comments=sl:/*,mb:\ *,elx:\ */
+
+colorscheme slate
+set background=dark
+set autoread
+set incsearch
+
+set swapfile
+set dir=/dev/shm
+set mouse=n
+
+filetype plugin on
+filetype indent on
+
+set formatoptions=tclq
+
+let mapleader = ","
+let g:mapleader = ","
+
+map <leader>e :e! ~/.vimrc<CR>
+autocmd! bufwritepost vimrc source ~/.vimrc
+
+au FileType haskell,vhdl,ada,sql,plsql let b:comment_leader = '-- '
+au FileType vim let b:comment_leader = '" '
+au FileType c,cpp,java,scala let b:comment_leader = '// '
+au FileType perl,tcl,conf,zsh,sh,make,sshconfig let b:comment_leader = '# '
+au FileType bib,tex,plaintex,latex let b:comment_leader = '% '
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Custom Syntax Highlightings
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+au FileType tex,plaintex,latex set syntax=tex
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Key Mappings
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+nnoremap <silent> <Space> :silent noh<Bar>echo<CR>
+noremap <silent> ,c :<C-B>sil <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:noh<CR>
+noremap <silent> ,u :<C-B>sil <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:noh<CR>
+
+map <A-RIGHT> <c-w>>
+map <A-LEFT> <c-w><
+map <A-UP> <c-w>-
+map <A-DOWN> <c-w>+
+map <TAB> <C-w>w
+map <S-TAB> <C-w>W
+map <C-m> ]c
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vim Airline Configs 
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+set laststatus=2
+set nolazyredraw
+
+let g:airline_theme             = 'powerlineish'
+let g:airline_enable_syntastic  = 1
+let g:airline_detect_modified   = 1
+let g:airline_detect_paste      = 1
+let g:airline#extensions#branch#enabled = 1
+
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#fnamecollapse = 1
+let g:airline#extensions#tabline#show_buffers = 1
+let g:airline#extensions#tabline#left_sep = ' '
+let g:airline#extensions#tabline#left_alt_sep = '|'
+
+function! AirlineInit()
+    let g:airline_section_a = airline#section#create(['mode'])
+    let g:airline_section_b = airline#section#create(['ffenc'])
+    let g:airline_section_c = airline#section#create(['hunks',' ','branch'])
+    let g:airline_section_x = airline#section#create(['%f'])
+    let g:airline_section_y = airline#section#create(['%Y'])
+    let g:airline_section_z = airline#section#create(['L%l',':','C%c'])
+endfunction
+autocmd VimEnter * call AirlineInit()
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+" GitGutterPlugin Configuration
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:gitgutter_enable=1
+let g:gitgutter_highlight_lines=0
+
+let g:gitgutter_sign_added='+'
+let g:gitgutter_sign_modified='~'
+let g:gitgutter_sign_removed='-'
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Vim-Indent-Guides Configuration 
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:indent_guides_auto_colors = 1
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_start_level = 2
+let g:indent_guides_guide_size = 1
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+" Functions
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+if ! has("gui_running")
+	source $VIMRUNTIME/menu.vim
+	set wildmenu
+	set cpo-=<
+	set wcm=<C-Z>
+	map <F4> :emenu <C-Z>
+endif
+
+augroup BgHighlight
+	autocmd!
+    autocmd WinEnter * set number
+    autocmd WinLeave * set nonumber
+augroup END
+
+function! ConditionalPairMap(open, close)
+    let line = getline('.')
+    let col = col('.')
+    if col < col('$') || stridx(line, a:close, col + 1) != -1
+        return a:open
+    else
+        return a:open . a:close . repeat("\<left>", len(a:close))
+    endif
+endf
+
+inoremap <expr> ( ConditionalPairMap('(', ')')
+inoremap <expr> { ConditionalPairMap('{', '}')
+inoremap <expr> [ ConditionalPairMap('[', ']')
+inoremap <expr> < ConditionalPairMap('<', '>')

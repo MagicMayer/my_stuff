@@ -1,0 +1,210 @@
+if [[ "${TERM}" == "xterm" ]]; then
+    export BATTERY=1
+else
+    export BATTERY=0
+fi
+
+# zsh configs
+if [ -f /etc/zshrc ]; then
+	source /etc/zshrc
+fi
+
+# Suffix aliases
+
+alias -s txt=vim
+alias -s pdf='evince 1>/dev/null 2>&1'
+alias -s eps='evince 1>/dev/null 2>&1'
+alias -s tex=vim
+alias -s latex=vim
+alias -s bib=vim
+alias -s sh=zsh
+alias -s h=vim
+alias -s c=vim
+alias -s scala=vim
+alias -s mp3='mplayer -nolirc'
+alias -s ogg='mplayer -nolirc'
+alias -s mkv='mplayer -fs -nolirc -msglevel all=0'
+
+# Global aliases
+alias -g ..='..'
+alias -g ...='../..'
+alias -g ....='../../..'
+alias -g vi='vim'
+
+alias -g TT='| tail -n10'
+alias -g L='| less'
+
+# remove ls aliases
+unalias ls
+unalias la
+unalias l
+unalias ll
+
+# Command aliases
+alias ls="ls --color=auto"
+alias l='ls'
+alias ll='ls -hl'
+alias la='ls -Sahli'
+alias ls.pg='psql -Xl'
+alias time='/bin/time'
+alias s-='su -'
+alias ack='ack --noheading'
+alias egrep='egrep --color=auto'
+alias rgrep='grep -EIRni --exclude=\*.{svn*,o} --exclude-dir={CVS,Build,dist,.git,.svn}'
+alias kinit='kinit -A'
+alias texdoc='texdoc $1 2>/dev/null'
+alias texcount='texcount -nosub -v0 -incbib -merge -countall'
+alias gdb='gdb -q'
+alias gcc='gcc -W -Wall -g3 -ggdb3 -Og'
+
+# Fuer Faule:
+alias zsrc='source $HOME/.zshrc'
+alias dbr='kill -2 $(pidof dropbox) && ~/.dropbox-dist/dropboxd & >/dev/null 2>&1' 
+alias dbs='nohup ~/.dropbox-dist/dropboxd & >~/.dropbox-dist/nohup.log 2>&1 && rm -f nohup.out'
+
+# Shell functions
+function pp () {
+	ps auxmw | grep -Ei " PID|${*}" | grep -v grep
+}
+
+function pt () {
+    test ${#} -eq 0 && echo "Usage: ${0} <progname(s)>" && return
+    pid=$(pidof ${*})
+    if [ $? -eq 0 ]; then
+        ps wmo euid,euser,pid,tid,ppid,%cpu,%mem,vsz,rss,tname,stat,start_time,cputime,cmd -p $pid
+    else
+        echo "${0}: No such process '${*}'"
+    fi
+}
+
+function netstat () {
+    /usr/bin/netstat -atulpen 2>/dev/null | grep --color=none -Ei " PID|${*}" 
+}
+
+function lsof () {
+    /usr/sbin/lsof 2>/dev/null | grep --color=none -Ei " PID|${*}"
+}
+
+function +x () {
+	chmod +x ${*}
+}
+
+function lsize () {
+	ls -l ${*} | sort -nrk 5 | head -20
+}
+
+function lt () {
+	ls -lt ${*} | head -20
+}
+
+function vim() {
+	if [ $# -eq 1 ]; then
+        /usr/bin/vim $(sed -e 's/\(.*\):\(.*\)/\1 +\2/g' <<< $1)
+	elif [ $# -eq 2 ]; then
+		/usr/bin/vim -O $*
+    elif [ $# -gt 2 ]; then
+        for i in $*; do /usr/bin/vim $i; done
+	else
+		/usr/bin/vim
+	fi
+}
+
+## misc service functions
+
+function md5check () {
+    test ${#} -eq 0 && echo "Usage: ${0} <md5sum> <filename>" && return
+    test -f ${1} && printf "Usage: ${0} \e[5;31;40m<md5sum>\e[m <filename>\n" && return
+    test ! -f ${2} && printf "Usage: ${0} <md5sum> \e[5;31;40m<filename>\e[m\n" && return
+    if [ "$(md5sum ${2} | cut -d" " -f1)" = "${1}" ]; then
+        printf "\e[5;32;40mChecksum for ${2} matches\e[m\n"
+    else
+        printf "\e[5;31;40mERROR - Checksum missmatch\e[m\n"
+    fi
+    return
+}
+
+function sha1check () {
+    test ${#} -eq 0 && echo "Usage: ${0} <sha1sum> <filename>" && return
+    test -f ${1} && printf "Usage: ${0} \e[5;31;40m<sha1sum>\e[m <filename>\n" && return
+    test ! -f ${2} && printf "Usage: ${0} <sha1sum> \e[5;31;40m<filename>\e[m\n" && return
+    if [ "$(sha1sum ${2} | cut -d" " -f1)" = "${1}" ]; then
+        printf "\e[5;32;40mChecksum for ${2} matches\e[m\n"
+    else
+        printf "\e[5;31;40mERROR - Checksum missmatch\e[m\n"
+    fi
+    return
+}
+
+function pdfcat () {
+    test ${#} -eq 0 && echo "Usage: ${0} <pdf-list>" && return
+    if [ -n `which gs` ]; then
+        gs -q -sPAPERSIZE=a4 -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=out.pdf ${*}
+    else
+        echo "Cant find any suitable Programm to concat PDF-Pages"
+        return
+    fi
+}
+
+function pdfextract () {
+    test ${#} -lt 3 && echo "Usage: ${0} <firstpage> <lastpage> <input>" && return
+    test ${1} -gt ${2} && echo "Value for Firstpage ${1} greater than Listpage ${2}" && return
+    filename=$(basename ${3} .pdf)
+    if [ -n `which pdftops` ]; then
+        pdftops ${3} - | psselect -p${1}-${2} | ps2pdf14 - ${filename}_pages_${1}_${2}.pdf
+        test -f ${filename}.ps && rm -f ${filename}.ps
+    elif [ -n `which gs` ]; then
+        gs -sDEVICE=pdfwrite -dNOPAUSE -dSAFER -dBATCH -dFirstPage=${1} -dLastPage=${2} \
+            -sOutputFile=${filename}_pages_${1}_${2}.pdf ${3}
+    else
+        echo "Cant find any suitable Programm to extract Pages from a PDF ${3}"
+        return
+    fi
+}
+
+function mount.udf () {
+    test ${#} -ne 2 && echo "Usage: ${0} <file.iso> <mnt-path>" && return
+    if [ ! -f ${1} ]; then
+        echo "File ${1} does not exist!" && return
+    fi
+    if [ ${EUID} -ne 0 ]; then
+        echo "${0} Error: only root can do that" && return
+    fi
+    mount -t udf -o loop=/dev/loop ${1} ${2}
+    echo "${0}: Mounted ${1} at ${2}"
+}
+
+function mount.home() {
+    test ${#} -ne 2 && echo "Usage: ${0} <remote.share> <local.directory>" && return
+    if [ ! -d ${2} ]; then
+        echo "Local mountpoint ${2} does not exist -- create it!"
+        mkdir -p ${2}
+    fi
+    printf "root "
+    su -c "mount.cifs //192.168.210.103/${1} ${2} -o rw,user=Share,password=1234,uid=1000,gid=1000"
+    if [ $? -eq 0 ]; then
+        echo "${0}: Mounted ${1} at ${2}"
+    fi
+}
+
+function hexdump_mp3() {
+    test ${#} -lt 1 && echo "Usage: ${0} <filename.mp3> [Offset]" && return
+    test ! -f ${1} && echo "Error: File ${1} does not exist!" && return
+    fbytes=$(du -b ${1} | cut -f1)
+    offset=$(test -z ${2} && echo 128 || echo ${2})
+    # just read the last 128 Bytes, which contain the ID3 Tag
+    hexdump -s$(($fbytes - ${offset})) -C ${1}    
+    return
+}
+
+function treedel() {
+    test ${#} -lt 1 && echo "Usage: ${0} <filetype>" && return
+    find . -name $1 -exec rm {} \;
+}
+
+function rsync.home () {
+    test ${#} -lt 2 && echo "Usage: ${0} <remote-directory> <local-directory>" && return
+    test ! -d ${2} && echo "${0} Error: Directory ${1} does not exist" && return
+    /usr/bin/rsync -r -v -e --progress ssh foo@${HOME_IP}:${1} --delete ${2}
+}
+
+# EOF

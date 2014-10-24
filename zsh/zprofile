@@ -1,0 +1,48 @@
+##### OWN Exports #####
+export HOME_SCRIPTS=${HOME}/bin/scripts/
+export HOME_BIN=${HOME}/bin/bin/
+PATH=${HOME_SCRIPTS}:${HOME_BIN}:${PATH}
+
+#### TeXLive home ####
+export TEXLIVE_HOME=/usr/local/texlive/2014/bin/x86_64-linux
+PATH=${TEXLIVE_HOME}:${PATH}
+
+######## Android Tools #########
+if [ -d /opt/android-sdk/sdk/tools/ ]; then
+    export ANDROID_HOME=/opt/android-sdk/sdk/tools/
+    PATH=${ANDROID_HOME}:${PATH}
+fi
+
+######## PostgreSQL-Pathes ########
+export PGSQL_HOME=/usr/pgsql-9.3/bin/
+PATH=${PGSQL_HOME}:${PATH}
+
+######## MPI STUFF #########
+export MPICH_HOME=/usr/lib64/mpich/bin
+export OMPI_HOME=/usr/lib64/openmpi/bin
+PATH=${MPICH_HOME}:${PATH}
+
+######## Java and Scala Pathes ########
+export JAVA_HOME=$(readlink /etc/alternatives/java_sdk)
+export JRE_HOME=${JAVA_HOME}
+test -d "/opt/scala-2.10.1" && export SCALA_HOME=/opt/scala-2.10.1
+test -d "/opt/play" && export PLAY_HOME=/opt/play
+
+######## Perl related Pathes #######
+export PERL_LOCAL_LIB_ROOT="$PERL_LOCAL_LIB_ROOT:/home/steffen/perl5";
+export PERL_MB_OPT="--install_base /home/steffen/perl5";
+export PERL_MM_OPT="INSTALL_BASE=/home/steffen/perl5";
+export PERL5LIB="/home/steffen/perl5/lib/perl5:$PERL5LIB";
+export PERL5BIN="/home/steffen/perl5/bin"
+
+#### export important Linux pathes ###
+export PATH=${PATH}
+export MANPATH=/usr/share/man/openmpi-x86_64:/usr/local/texlive/2013/texmf/doc/man:$HOME/bin/man/:$MANPATH
+export INFOPATH=/usr/local/texlive/2013/texmf/doc/info:$INFOPATH
+
+### do not write TMP Files to SSD, used shared Memory
+export TMPDIR=/dev/shm
+
+### DESY-ZN RZ Printer Settings
+export CUPS_SERVER=zncups.ifh.de
+export LPDEST=znrzc
